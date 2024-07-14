@@ -10,17 +10,17 @@ use core::panic::PanicInfo;
 mod serial;
 mod vga_buffer;
 
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
-    loop {}
-}
-
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     sunscreen_os::test_panic_handler(info);
+}
+
+#[cfg(not(test))]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
+    sunscreen_os::hlt_loop();
 }
 
 #[no_mangle]
@@ -32,6 +32,5 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     println!("It didnt crash!");
-    loop {
-    }
+    sunscreen_os::hlt_loop();
 }
