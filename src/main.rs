@@ -7,6 +7,12 @@
 
 use core::panic::PanicInfo;
 
+use bootloader::{entry_point, BootInfo};
+use sunscreen_os::memory::{self, BootInfoFrameAllocator};
+use x86_64::VirtAddr;
+
+entry_point!(kernel_main);
+
 mod serial;
 mod vga_buffer;
 
@@ -23,10 +29,16 @@ fn panic(info: &PanicInfo) -> ! {
     sunscreen_os::hlt_loop();
 }
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    println!("Hello OS dev, {}", "from rust!");
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    println!("Sunscreen OS 0.1.0");
     sunscreen_os::init();
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut _mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut _frame_allocator = unsafe {
+        BootInfoFrameAllocator::init(&boot_info.memory_map)
+    };
+
 
     #[cfg(test)]
     test_main();
